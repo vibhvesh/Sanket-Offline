@@ -41,4 +41,4 @@ The app captures mono audio at the configured sample rate (default 16 kHz) using
 
 This is an offline audio-analysis demonstrator. Keyword detections are informational events only. No transcript or detected phrase can energize physical relay hardware. The relay indicator is simulated. Do not connect this software to weapons, safety-critical systems, or operational command-and-control equipment.
 
-See [Installation](docs/INSTALL.md) and [Safety](docs/SAFETY.md).
+Documentation: [User Manual](docs/USER-MANUAL.md) · [Administrator Guide](docs/ADMIN-GUIDE.md) · [Installation](docs/INSTALL.md) · [Safety](docs/SAFETY.md).
