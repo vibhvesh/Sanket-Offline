@@ -1,0 +1,20 @@
+app:
+  host: 0.0.0.0
+  port: 8080
+audio:
+  device: null
+  sample_rate: 16000
+  channels: 1
+  silence_seconds: 1.8
+  speech_threshold: 0.012
+transcription:
+  language: en
+  model: /opt/sanket-offline/whisper.cpp/models/ggml-base.en-q5_0.bin
+  cli: /opt/sanket-offline/whisper.cpp/build/bin/whisper-cli
+  threads: 4
+storage:
+  data_dir: /var/lib/sanket-offline
+  retention_days: 30
+keywords:
+  phrases: [mayday, emergency, fire, help]
+  beep_on_match: false
