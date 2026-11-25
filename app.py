@@ -85,7 +85,7 @@ def startup():
     event("BOOT","Sanket Offline started")
     threading.Thread(target=worker,daemon=True).start()
     threading.Thread(target=capture,daemon=True).start()
-@app.on_event("shutdown"):
+@app.on_event("shutdown")
 def shutdown(): stop_event.set()
 
 @app.get("/api/status")
