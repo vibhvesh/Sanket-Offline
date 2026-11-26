@@ -1,44 +1,53 @@
-# Sanket Offline
+# Sanket Offline V2
 
-Offline Raspberry Pi 5 audio capture, local English transcription and informational keyword detection.
+Raspberry Pi 5 offline audio transcription prototype with VAD-based clip segmentation, local Whisper Base.en, administrator-defined keyword rules and a four-channel **software relay simulator**.
 
-- Captures receive-only audio from a USB audio interface.
-- Records silence-delimited WAV clips.
-- Transcribes locally with **whisper.cpp / Whisper Base.en**.
-- Logs transcripts and configurable keyword matches to SQLite.
-- Provides a local FastAPI dashboard and systemd service.
-- No cloud transcription. Keyword matches are informational only; relay status is simulated.
+## V2 workflow
 
-## Install on Raspberry Pi 5
+1. Receive audio through a 3.5 mm source cable connected to a compatible USB audio interface (Pi 5 has no analog audio input).
+2. WebRTC VAD segments speech automatically at 16 kHz mono.
+3. Each clip includes a 1-second pre-roll and closes after 2 seconds of silence.
+4. A separate transcription worker processes clips using local whisper.cpp / Whisper Base.en.
+5. Completed transcripts are matched against administrator-defined phrase rules.
+6. Matching rules create simulated Channel 1–4 ON/OFF/TOGGLE events in the dashboard.
 
-Use Raspberry Pi OS 64-bit or Ubuntu 64-bit. Connect your receive-only audio source to a USB audio interface, then run:
+## One-line Raspberry Pi installer
+
+On a 64-bit Raspberry Pi OS / Ubuntu ARM64 installation:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/vibhvesh/Sanket-Offline/main/install.sh | sudo bash
 ```
 
-The installer builds whisper.cpp, downloads the quantized Base.en model, creates the Python environment, installs the service and starts it. Internet is required for this one-time installation and model download; runtime transcription is local.
+Internet is needed during installation to install packages, build whisper.cpp and download the model. Transcription is local after installation.
 
-Open `http://sanket-offline.local:8080` (if mDNS is available) or `http://PI-IP:8080`.
+Dashboard: `http://PI-IP:8080`
 
-## First checks
+## Dashboard
 
-1. Dashboard → Live Monitor: verify the USB input device and input level.
-2. Dashboard → Configuration: set the correct audio device index in `/etc/sanket-offline/config.yaml`.
-3. Dashboard → Test Lab: check the Whisper model and upload a WAV for transcription.
-4. Dashboard → Recent activity: inspect transcripts and saved recording references.
+- Live audio and model status
+- VAD recording status and input level
+- Transcript and recording event history
+- Keyword rule editor: phrase, channel, action and enable state
+- Four-channel software relay-state simulator
+- WAV upload transcription test
 
-Configuration: `/etc/sanket-offline/config.yaml`  
-Data and recordings: `/var/lib/sanket-offline/`  
-Service: `sanket-offline.service`  
-Logs: `journalctl -u sanket-offline -f`
+## Configuration
 
-## Audio
+`/etc/sanket-offline/config.yaml`
 
-The app captures mono audio at the configured sample rate (default 16 kHz) using PortAudio. If your USB interface exposes a different native rate, change `sample_rate` to a supported rate. The installer downloads the model; it does not download audio to a cloud service.
+Default VAD settings: 16 kHz mono, 20 ms frames, 1 second pre-roll, 2 seconds silence ending, WebRTC VAD aggressiveness 2.
 
-## Safety
+## Service
 
-This is an offline audio-analysis demonstrator. Keyword detections are informational events only. No transcript or detected phrase can energize physical relay hardware. The relay indicator is simulated. Do not connect this software to weapons, safety-critical systems, or operational command-and-control equipment.
+```bash
+sudo systemctl status sanket-offline
+sudo journalctl -u sanket-offline -f
+sudo systemctl restart sanket-offline
+```
 
-Documentation: [User Manual](docs/USER-MANUAL.md) · [Administrator Guide](docs/ADMIN-GUIDE.md) · [Installation](docs/INSTALL.md) · [Safety](docs/SAFETY.md).
+## Prototype safety and limitations
+
+This release implements keyword-to-output mapping in software only. It does **not** drive GPIO pins, energize a physical relay board, or switch connected equipment. Validate segmentation, transcription accuracy, phrase matching and event logging in simulation. Do not connect this prototype to weapons, safety-critical systems or operational command-and-control equipment.
+
+The dashboard has no login or HTTPS. Keep port 8080 on a trusted private LAN. Automatic retention cleanup is not implemented yet.
