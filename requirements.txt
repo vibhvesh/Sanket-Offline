@@ -5,3 +5,4 @@ numpy>=1.26,<3
 PyYAML>=6,<7
 python-multipart>=0.0.9
 webrtcvad-wheels>=2.0.14
+scipy>=1.13,<2
