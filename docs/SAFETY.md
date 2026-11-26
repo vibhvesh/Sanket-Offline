@@ -1,13 +1,12 @@
-# Safety scope
+# Safety and prototype boundary
 
-Sanket Offline is an offline receive-audio recording and transcription demonstrator.
+Sanket Offline V2 is an offline audio transcription and keyword-event prototype.
 
-- Audio input is receive-only.
-- Keyword matching creates timestamped informational events.
-- The dashboard relay indication is simulated; no GPIO relay driver or physical relay actuation is implemented.
-- Do not use transcript text or keyword detections as authentication, authorization, or a safety decision.
-- Speech and numeric codes can be replayed or misrecognized and are not secure authentication.
-- Do not connect this application to weapons, emergency dispatch controls, vehicles, industrial machinery, or safety-critical/operational command systems.
-- Test with harmless audio and a receive-only setup.
-
-Speech recognition can omit, substitute, or hallucinate words, especially with radio noise, clipping, overlapping speakers, accents, and weak signals. Operators must verify transcripts.
+- Audio is captured from a receive-side 3.5 mm source through a suitable USB audio interface.
+- Transcription and phrase matching are informational and may be wrong.
+- ON/OFF/TOGGLE rules change software-simulated channel states only.
+- No GPIO output or physical relay board is driven in this repository version.
+- Do not treat recognized phrases as authentication, authorization or proof of speaker identity.
+- Do not connect this prototype to weapons, safety-critical equipment or operational command-and-control.
+- Keep the unauthenticated dashboard restricted to a trusted private network.
+- Check audio electrical levels and isolation before connecting any source to the USB audio interface.
