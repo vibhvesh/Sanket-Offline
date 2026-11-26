@@ -11,7 +11,7 @@ audio:
   silence_end_seconds: 2
 transcription:
   language: en
-  model: /opt/sanket-offline/whisper.cpp/models/ggml-base.en-q5_0.bin
+  model: /opt/sanket-offline/whisper.cpp/models/ggml-base.en.bin
   cli: /opt/sanket-offline/whisper.cpp/build/bin/whisper-cli
   threads: 4
 storage:
