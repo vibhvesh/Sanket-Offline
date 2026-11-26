@@ -5,8 +5,10 @@ audio:
   device: null
   sample_rate: 16000
   channels: 1
-  silence_seconds: 1.8
-  speech_threshold: 0.012
+  vad_aggressiveness: 2
+  vad_frame_ms: 20
+  pre_roll_seconds: 1
+  silence_end_seconds: 2
 transcription:
   language: en
   model: /opt/sanket-offline/whisper.cpp/models/ggml-base.en-q5_0.bin
@@ -15,6 +17,8 @@ transcription:
 storage:
   data_dir: /var/lib/sanket-offline
   retention_days: 30
-keywords:
-  phrases: [mayday, emergency, fire, help]
-  beep_on_match: false
+keyword_rules:
+  - phrase: "sample phrase"
+    channel: 1
+    action: ON
+    enabled: false
