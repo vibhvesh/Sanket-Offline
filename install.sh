@@ -12,14 +12,16 @@ mkdir -p "$APP"
 if [[ ! -d "$APP/whisper.cpp/.git" ]]; then git clone --depth 1 https://github.com/ggml-org/whisper.cpp.git "$APP/whisper.cpp"; fi
 cmake -S "$APP/whisper.cpp" -B "$APP/whisper.cpp/build" -DWHISPER_BUILD_TESTS=OFF -DWHISPER_BUILD_EXAMPLES=ON -DGGML_OPENBLAS=ON
 cmake --build "$APP/whisper.cpp/build" --config Release -j"$(nproc)"
-echo "[3/8] Downloading Whisper Base.en"
-bash "$APP/whisper.cpp/models/download-ggml-model.sh" base.en-q5_0
+echo "[3/8] Downloading supported Whisper Base.en model"
+bash "$APP/whisper.cpp/models/download-ggml-model.sh" base.en
+MODEL="$APP/whisper.cpp/models/ggml-base.en.bin"
+[[ -s "$MODEL" ]] || { echo "Whisper model download failed: $MODEL not found"; exit 1; }
 echo "[4/8] Downloading Sanket Offline V2"
 curl -fsSL "$REPO/app.py" -o "$APP/app.py"
 curl -fsSL "$REPO/requirements.txt" -o "$APP/requirements.txt"
 mkdir -p "$CONF" "$DATA/recordings"
 if [[ ! -f "$CONF/config.yaml" ]]; then curl -fsSL "$REPO/config.yaml" -o "$CONF/config.yaml"; fi
-sed -i "s|/opt/sanket-offline/whisper.cpp/models/ggml-base.en-q5_0.bin|$APP/whisper.cpp/models/ggml-base.en-q5_0.bin|; s|/opt/sanket-offline/whisper.cpp/build/bin/whisper-cli|$APP/whisper.cpp/build/bin/whisper-cli|" "$CONF/config.yaml"
+sed -i "s|/opt/sanket-offline/whisper.cpp/models/ggml-base.en-q5_0.bin|$MODEL|g; s|/opt/sanket-offline/whisper.cpp/models/ggml-base.en.bin|$MODEL|g; s|/opt/sanket-offline/whisper.cpp/build/bin/whisper-cli|$APP/whisper.cpp/build/bin/whisper-cli|g" "$CONF/config.yaml"
 echo "[5/8] Installing Python packages"
 python3 -m venv "$APP/venv"
 "$APP/venv/bin/pip" install --upgrade pip
