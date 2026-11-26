@@ -67,14 +67,42 @@ def segmenter():
   frames.task_done()
 def capture():
  try:
-  with sd.RawInputStream(device=cfg["audio"].get("device"),samplerate=16000,channels=1,dtype="int16",blocksize=320) as s:
-   state["audio"]="connected";log("AUDIO_CONNECTED","USB audio input opened: 16 kHz mono")
+  # CS202 USB interface runs natively at 48 kHz stereo. Convert to the
+  # 16 kHz mono PCM format required by WebRTC VAD and Whisper.
+  hardware_rate=int(cfg["audio"].get("hardware_sample_rate",48000))
+  hardware_channels=int(cfg["audio"].get("hardware_channels",2))
+  target_rate=int(cfg["audio"].get("sample_rate",16000))
+  frame_ms=int(cfg["audio"].get("vad_frame_ms",20))
+  input_block=int(hardware_rate*frame_ms/1000)
+  output_block=int(target_rate*frame_ms/1000)
+  if hardware_rate % target_rate:
+   raise ValueError("Hardware sample rate must be an integer multiple of pipeline sample rate")
+  from scipy.signal import resample_poly
+  with sd.RawInputStream(device=cfg["audio"].get("device"),samplerate=hardware_rate,
+                         channels=hardware_channels,dtype="int16",blocksize=input_block) as s:
+   state["audio"]="connected"
+   log("AUDIO_CONNECTED",f"USB audio input opened: {hardware_rate} Hz, {hardware_channels} channel(s); converted to {target_rate} Hz mono")
    while not stop.is_set():
-    data,overflow=s.read(320)
+    data,overflow=s.read(input_block)
     if overflow:log("AUDIO_OVERFLOW","Input overflow")
-    try:frames.put(bytes(data),timeout=.2)
+    samples=np.frombuffer(data,dtype="<i2")
+    if samples.size != input_block*hardware_channels:
+     log("AUDIO_BAD_BLOCK",f"Expected {input_block*hardware_channels} samples, received {samples.size}")
+     continue
+    if hardware_channels > 1:
+     samples=samples.reshape(-1,hardware_channels).astype(np.int32).mean(axis=1)
+    else:
+     samples=samples.astype(np.int32)
+    mono=np.clip(np.rint(samples),-32768,32767).astype(np.int16)
+    converted=resample_poly(mono.astype(np.float32),target_rate,hardware_rate)
+    converted=np.clip(np.rint(converted),-32768,32767).astype("<i2")
+    if converted.size != output_block:
+     log("AUDIO_BAD_BLOCK",f"Resampler produced {converted.size}; expected {output_block}")
+     continue
+    try:frames.put(converted.tobytes(),timeout=.2)
     except queue.Full:log("AUDIO_QUEUE_FULL","Frame queue full; frame dropped")
- except Exception as e:state["audio"]="error";state["last_error"]=str(e);log("AUDIO_ERROR",str(e))
+ except Exception as e:
+  state["audio"]="error";state["last_error"]=str(e);log("AUDIO_ERROR",str(e))
 @app.on_event("startup")
 def startup():
  state["model"]="READY" if ready() else "NOT READY";log("BOOT","Sanket Offline V2 started")
