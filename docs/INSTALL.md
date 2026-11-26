@@ -28,5 +28,5 @@ Check model files:
 
 ```bash
 ls -lh /opt/sanket-offline/whisper.cpp/build/bin/whisper-cli
-ls -lh /opt/sanket-offline/whisper.cpp/models/ggml-base.en-q5_0.bin
+ls -lh /opt/sanket-offline/whisper.cpp/models/ggml-base.en.bin
 ```
